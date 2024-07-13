@@ -51,7 +51,7 @@ impl RestPath<String> for HttpBinBase64 {
 async fn invalid_get() {
     let client = RestClient::new("http://httpbin.org").unwrap();
 
-    if client.get::<(), InvalidResource>(()).await.is_ok() {
+    if client.get::<(), InvalidResource>((), None).await.is_ok() {
         panic!("expected error");
     }
 }
@@ -62,7 +62,7 @@ async fn invalid_post() {
 
     let data = InvalidResource {};
 
-    if client.post((), &data).await.is_ok() {
+    if client.post((), &data, None).await.is_ok() {
         panic!("expected error");
     }
 }
@@ -71,7 +71,7 @@ async fn invalid_post() {
 async fn path_error() {
     let client = RestClient::new("http://httpbin.org").unwrap();
 
-    if let Err(Error::UrlError) = client.get::<bool, InvalidResource>(false).await {
+    if let Err(Error::UrlError) = client.get::<bool, InvalidResource>(false, None).await {
     } else {
         panic!("expected url error");
     }
@@ -81,7 +81,7 @@ async fn path_error() {
 async fn http_error() {
     let client = RestClient::new("http://httpbin.org").unwrap();
 
-    match client.get::<_, HttpBinStatus>(418).await {
+    match client.get::<_, HttpBinStatus>(418, None).await {
         Err(Error::HttpError(s, body)) => {
             assert_eq!(s, 418);
             assert!(!body.is_empty());
@@ -97,7 +97,7 @@ async fn request_timeout() {
     client.set_timeout(Duration::from_secs(1));
 
     let start = Instant::now();
-    if let Err(Error::TimeoutError) = client.get::<u16, HttpBinDelay>(3).await {
+    if let Err(Error::TimeoutError) = client.get::<u16, HttpBinDelay>(3, None).await {
         assert!(start.elapsed().as_secs() == 1);
     } else {
         panic!("expected timeout error");
@@ -112,7 +112,7 @@ async fn deserialize_error() {
     // Service returns decoded base64 in body which should be string 'test'.
     // This fails JSON deserialization and is returned in the Error
     if let Err(Error::DeserializeParseError(_, data)) =
-        client.get::<String, HttpBinBase64>("dGVzdA==".to_string()).await
+        client.get::<String, HttpBinBase64>("dGVzdA==".to_string(), None).await
     {
         assert!(data == "test");
     } else {

@@ -54,7 +54,7 @@ fn basic_get_builder() {
         .blocking("https://httpbin.org")
         .unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(()).unwrap();
+    let data = client.get::<_, HttpBinAnything>((), None).unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything");
 }
 
@@ -62,7 +62,7 @@ fn basic_get_builder() {
 fn basic_get_https() {
     let client = RestClient::new_blocking("https://httpbin.org").unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(()).unwrap();
+    let data = client.get::<_, HttpBinAnything>((), None).unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything");
 }
 
@@ -70,7 +70,7 @@ fn basic_get_https() {
 fn get_path_param() {
     let client = RestClient::new_blocking("https://httpbin.org").unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(1234).unwrap();
+    let data = client.get::<_, HttpBinAnything>(1234, None).unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything/1234");
 }
 
@@ -78,7 +78,7 @@ fn get_path_param() {
 fn get_multi_path_param() {
     let client = RestClient::new_blocking("https://httpbin.org").unwrap();
 
-    let data = client.get::<_, HttpBinAnything>((1234, "abcd")).unwrap();
+    let data = client.get::<_, HttpBinAnything>((1234, "abcd"), None).unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything/1234/abcd");
 }
 
@@ -87,7 +87,7 @@ fn get_query_params() {
     let client = RestClient::new_blocking("https://httpbin.org").unwrap();
 
     let params = vec![("a", "2"), ("b", "abcd")];
-    let data = client.get_with::<_, HttpBinAnything>((), &params).unwrap();
+    let data = client.get_with::<_, HttpBinAnything>((), &params, None).unwrap();
 
     assert_eq!(data.url, "https://httpbin.org/anything?a=2&b=abcd");
     assert_eq!(data.args.a, "2");
@@ -101,7 +101,7 @@ fn relative_path() {
     // the path returned from get_path().
     let client = RestClient::new_blocking("https://httpbin.org/anything/api/").unwrap();
 
-    let data = client.get::<_, HttpRelativePath>(()).unwrap();
+    let data = client.get::<_, HttpRelativePath>((), None).unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything/api/test");
 }
 
@@ -117,6 +117,6 @@ fn body_wash_fn() {
     };
     client.set_body_wash_fn(body_wash_fn);
 
-    let data = client.get::<_, HttpBinAnything>(()).unwrap();
+    let data = client.get::<_, HttpBinAnything>((), None).unwrap();
     assert_eq!(data.url, "from body wash fn");
 }

@@ -54,7 +54,7 @@ async fn basic_get_builder() {
         .build("https://httpbin.org")
         .unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(()).await.unwrap();
+    let data = client.get::<_, HttpBinAnything>((), None).await.unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything");
 }
 
@@ -62,7 +62,7 @@ async fn basic_get_builder() {
 async fn basic_get_https() {
     let client = RestClient::new("https://httpbin.org").unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(()).await.unwrap();
+    let data = client.get::<_, HttpBinAnything>((), None).await.unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything");
 }
 
@@ -70,7 +70,7 @@ async fn basic_get_https() {
 async fn get_path_param() {
     let client = RestClient::new("https://httpbin.org").unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(1234).await.unwrap();
+    let data = client.get::<_, HttpBinAnything>(1234, None).await.unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything/1234");
 }
 
@@ -79,9 +79,9 @@ async fn get_concurrent() {
     let client = RestClient::new("https://httpbin.org").unwrap();
 
     let (data1, data2, data3) = tokio::try_join!(
-        client.get::<_, HttpBinAnything>(1),
-        client.get::<_, HttpBinAnything>(2),
-        client.get::<_, HttpBinAnything>(3)
+        client.get::<_, HttpBinAnything>(1, None),
+        client.get::<_, HttpBinAnything>(2, None),
+        client.get::<_, HttpBinAnything>(3, None)
     ).unwrap();
 
     assert_eq!(data1.url, "https://httpbin.org/anything/1");
@@ -93,7 +93,7 @@ async fn get_concurrent() {
 async fn get_multi_path_param() {
     let client = RestClient::new("https://httpbin.org").unwrap();
 
-    let data = client.get::<_, HttpBinAnything>((1234, "abcd")).await.unwrap();
+    let data = client.get::<_, HttpBinAnything>((1234, "abcd"), None).await.unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything/1234/abcd");
 }
 
@@ -102,7 +102,7 @@ async fn get_query_params() {
     let client = RestClient::new("https://httpbin.org").unwrap();
 
     let params = vec![("a", "2"), ("b", "abcd")];
-    let data = client.get_with::<_, HttpBinAnything>((), &params).await.unwrap();
+    let data = client.get_with::<_, HttpBinAnything>((), &params, None).await.unwrap();
 
     assert_eq!(data.url, "https://httpbin.org/anything?a=2&b=abcd");
     assert_eq!(data.args.a, "2");
@@ -116,7 +116,7 @@ async fn relative_path() {
     // the path returned from get_path().
     let client = RestClient::new("https://httpbin.org/anything/api/").unwrap();
 
-    let data = client.get::<_, HttpRelativePath>(()).await.unwrap();
+    let data = client.get::<_, HttpRelativePath>((), None).await.unwrap();
     assert_eq!(data.url, "https://httpbin.org/anything/api/test");
 }
 
@@ -132,6 +132,6 @@ async fn body_wash_fn() {
     };
     client.set_body_wash_fn(body_wash_fn);
 
-    let data = client.get::<_, HttpBinAnything>(()).await.unwrap();
+    let data = client.get::<_, HttpBinAnything>((), None).await.unwrap();
     assert_eq!(data.url, "from body wash fn");
 }

@@ -25,7 +25,7 @@ fn basic_patch() {
     let data = HttpBinPatch {
         data: String::from("test data"),
     };
-    client.patch((), &data).unwrap();
+    client.patch((), &data, None).unwrap();
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn patch_query_params() {
     let data = HttpBinPatch {
         data: String::from("test data"),
     };
-    client.patch_with((), &data, &params).unwrap();
+    client.patch_with((), &data, &params, None).unwrap();
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn patch_capture() {
     let data = HttpBinPatch {
         data: String::from("test data"),
     };
-    let resp = client.patch_capture::<_, _, HttpBinPatchResp>((), &data).unwrap();
+    let resp = client.patch_capture::<_, _, HttpBinPatchResp>((), &data, None).unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/patch");
@@ -60,7 +60,7 @@ fn patch_capture_query_params() {
     let data = HttpBinPatch {
         data: String::from("test data"),
     };
-    let resp = client.patch_capture_with::<_, _, HttpBinPatchResp>((), &data, &params).unwrap();
+    let resp = client.patch_capture_with::<_, _, HttpBinPatchResp>((), &data, &params, None).unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/patch?a=2&b=abcd");

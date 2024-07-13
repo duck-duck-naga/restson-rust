@@ -25,7 +25,7 @@ async fn basic_patch() {
     let data = HttpBinPatch {
         data: String::from("test data"),
     };
-    client.patch((), &data).await.unwrap();
+    client.patch((), &data, None).await.unwrap();
 }
 
 #[tokio::test]
@@ -36,7 +36,7 @@ async fn patch_query_params() {
     let data = HttpBinPatch {
         data: String::from("test data"),
     };
-    client.patch_with((), &data, &params).await.unwrap();
+    client.patch_with((), &data, &params, None).await.unwrap();
 }
 
 #[tokio::test]
@@ -46,7 +46,7 @@ async fn patch_capture() {
     let data = HttpBinPatch {
         data: String::from("test data"),
     };
-    let resp = client.patch_capture::<_, _, HttpBinPatchResp>((), &data).await.unwrap();
+    let resp = client.patch_capture::<_, _, HttpBinPatchResp>((), &data, None).await.unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/patch");
@@ -61,7 +61,7 @@ async fn patch_capture_query_params() {
         data: String::from("test data"),
     };
     let resp =
-        client.patch_capture_with::<_, _, HttpBinPatchResp>((), &data, &params).await.unwrap();
+        client.patch_capture_with::<_, _, HttpBinPatchResp>((), &data, &params, None).await.unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/patch?a=2&b=abcd");

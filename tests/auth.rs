@@ -17,7 +17,7 @@ fn basic_auth() {
 
     client.set_auth("username", "passwd");
     client
-        .get::<_, HttpBinBasicAuth>(("username", "passwd"))
+        .get::<_, HttpBinBasicAuth>(("username", "passwd"), None)
         .unwrap();
 }
 
@@ -26,7 +26,7 @@ fn basic_auth_fail() {
     let mut client = RestClient::new_blocking("http://httpbin.org").unwrap();
 
     client.set_auth("username", "wrong_passwd");
-    match client.get::<_, HttpBinBasicAuth>(("username", "passwd")) {
+    match client.get::<_, HttpBinBasicAuth>(("username", "passwd"), None) {
         Err(Error::HttpError(s, _)) if s == 401 || s == 403 => (),
         _ => panic!("Expected Unauthorized/Forbidden HTTP error"),
     };

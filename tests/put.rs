@@ -25,7 +25,7 @@ fn basic_put() {
     let data = HttpBinPut {
         data: String::from("test data"),
     };
-    client.put((), &data).unwrap();
+    client.put((), &data, None).unwrap();
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn put_query_params() {
     let data = HttpBinPut {
         data: String::from("test data"),
     };
-    client.put_with((), &data, &params).unwrap();
+    client.put_with((), &data, &params, None).unwrap();
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn put_capture() {
     let data = HttpBinPut {
         data: String::from("test data"),
     };
-    let resp = client.put_capture::<_, _, HttpBinPutResp>((), &data).unwrap();
+    let resp = client.put_capture::<_, _, HttpBinPutResp>((), &data, None).unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/put");
@@ -60,7 +60,7 @@ fn put_capture_query_params() {
     let data = HttpBinPut {
         data: String::from("test data"),
     };
-    let resp = client.put_capture_with::<_, _, HttpBinPutResp>((), &data, &params).unwrap();
+    let resp = client.put_capture_with::<_, _, HttpBinPutResp>((), &data, &params, None).unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/put?a=2&b=abcd");

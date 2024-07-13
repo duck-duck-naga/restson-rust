@@ -25,7 +25,7 @@ async fn basic_post() {
     let data = HttpBinPost {
         data: String::from("test data"),
     };
-    client.post((), &data).await.unwrap();
+    client.post((), &data, None).await.unwrap();
 }
 
 #[tokio::test]
@@ -36,7 +36,7 @@ async fn post_query_params() {
     let data = HttpBinPost {
         data: String::from("test data"),
     };
-    client.post_with((), &data, &params).await.unwrap();
+    client.post_with((), &data, &params, None).await.unwrap();
 }
 
 #[tokio::test]
@@ -46,7 +46,7 @@ async fn post_capture() {
     let data = HttpBinPost {
         data: String::from("test data"),
     };
-    let resp = client.post_capture::<_, _, HttpBinPostResp>((), &data).await.unwrap();
+    let resp = client.post_capture::<_, _, HttpBinPostResp>((), &data, None).await.unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/post");
@@ -60,7 +60,7 @@ async fn post_capture_query_params() {
     let data = HttpBinPost {
         data: String::from("test data"),
     };
-    let resp = client.post_capture_with::<_, _, HttpBinPostResp>((), &data, &params).await.unwrap();
+    let resp = client.post_capture_with::<_, _, HttpBinPostResp>((), &data, &params, None).await.unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/post?a=2&b=abcd");

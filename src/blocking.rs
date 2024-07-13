@@ -1,7 +1,7 @@
 //! Blocking variant of the `RestClient`
 
 use crate::{Error, Query, Response, RestClient as AsyncRestClient, RestPath};
-use hyper::header::HeaderValue;
+use hyper::{header::HeaderValue, HeaderMap};
 use std::{convert::TryFrom, time::Duration};
 use tokio::runtime::{Builder, Runtime};
 
@@ -63,94 +63,94 @@ impl RestClient {
     }
 
     /// Make a GET request.
-    pub fn get<U, T>(&self, params: U) -> Result<Response<T>, Error>
+    pub fn get<U, T>(&self, params: U, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<T>, Error>
     where
         T: serde::de::DeserializeOwned + RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.get(params))
+        self.runtime.block_on(self.inner_client.get(params, headers))
     }
 
     /// Make a GET request with query parameters.
-    pub fn get_with<U, T>(&self, params: U, query: &Query<'_>) -> Result<Response<T>, Error>
+    pub fn get_with<U, T>(&self, params: U, query: &Query<'_>, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<T>, Error>
     where
         T: serde::de::DeserializeOwned + RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.get_with(params, query))
+        self.runtime.block_on(self.inner_client.get_with(params, query, headers))
     }
 
     /// Make a POST request.
-    pub fn post<U, T>(&self, params: U, data: &T) -> Result<Response<()>, Error>
+    pub fn post<U, T>(&self, params: U, data: &T, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.post(params, data))
+        self.runtime.block_on(self.inner_client.post(params, data, headers))
     }
 
     /// Make a PUT request.
-    pub fn put<U, T>(&self, params: U, data: &T) -> Result<Response<()>, Error>
+    pub fn put<U, T>(&self, params: U, data: &T, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.put(params, data))
+        self.runtime.block_on(self.inner_client.put(params, data, headers))
     }
 
     /// Make a PATCH request.
-    pub fn patch<U, T>(&self, params: U, data: &T) -> Result<Response<()>, Error>
+    pub fn patch<U, T>(&self, params: U, data: &T, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.patch(params, data))
+        self.runtime.block_on(self.inner_client.patch(params, data, headers))
     }
 
     /// Make POST request with query parameters.
-    pub fn post_with<U, T>(&self, params: U, data: &T, query: &Query<'_>) -> Result<Response<()>, Error>
+    pub fn post_with<U, T>(&self, params: U, data: &T, query: &Query<'_>, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.post_with(params, data, query))
+        self.runtime.block_on(self.inner_client.post_with(params, data, query, headers))
     }
 
     /// Make PUT request with query parameters.
-    pub fn put_with<U, T>(&self, params: U, data: &T, query: &Query<'_>) -> Result<Response<()>, Error>
+    pub fn put_with<U, T>(&self, params: U, data: &T, query: &Query<'_>, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.put_with(params, data, query))
+        self.runtime.block_on(self.inner_client.put_with(params, data, query, headers))
     }
 
     /// Make PATCH request with query parameters.
-    pub fn patch_with<U, T>(&self, params: U, data: &T, query: &Query<'_>) -> Result<Response<()>, Error>
+    pub fn patch_with<U, T>(&self, params: U, data: &T, query: &Query<'_>, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.patch_with(params, data, query))
+        self.runtime.block_on(self.inner_client.patch_with(params, data, query, headers))
     }
 
     /// Make a POST request and capture returned body.
-    pub fn post_capture<U, T, K>(&self, params: U, data: &T) -> Result<Response<K>, Error>
+    pub fn post_capture<U, T, K>(&self, params: U, data: &T, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.runtime.block_on(self.inner_client.post_capture(params, data))
+        self.runtime.block_on(self.inner_client.post_capture(params, data, headers))
     }
 
     /// Make a PUT request and capture returned body.
-    pub fn put_capture<U, T, K>(&self, params: U, data: &T) -> Result<Response<K>, Error>
+    pub fn put_capture<U, T, K>(&self, params: U, data: &T, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.runtime.block_on(self.inner_client.put_capture(params, data))
+        self.runtime.block_on(self.inner_client.put_capture(params, data, headers))
     }
 
     /// Make a PATCH request and capture returned body.
-    pub fn patch_capture<U, T, K>(&self, params: U, data: &T) -> Result<Response<K>, Error>
+    pub fn patch_capture<U, T, K>(&self, params: U, data: &T, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.runtime.block_on(self.inner_client.patch_capture(params, data))
+        self.runtime.block_on(self.inner_client.patch_capture(params, data, headers))
     }
 
     /// Make a POST request with query parameters and capture returned body.
@@ -158,13 +158,13 @@ impl RestClient {
         &self,
         params: U,
         data: &T,
-        query: &Query<'_>,
+        query: &Query<'_>, headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.runtime.block_on(self.inner_client.post_capture_with(params, data, query))
+        self.runtime.block_on(self.inner_client.post_capture_with(params, data, query, headers))
     }
 
     /// Make a PUT request with query parameters and capture returned body.
@@ -172,13 +172,13 @@ impl RestClient {
         &self,
         params: U,
         data: &T,
-        query: &Query<'_>,
+        query: &Query<'_>, headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.runtime.block_on(self.inner_client.put_capture_with(params, data, query))
+        self.runtime.block_on(self.inner_client.put_capture_with(params, data, query, headers))
     }
 
     /// Make a PATCH request with query parameters and capture returned body.
@@ -186,38 +186,38 @@ impl RestClient {
         &self,
         params: U,
         data: &T,
-        query: &Query<'_>,
+        query: &Query<'_>, headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.runtime.block_on(self.inner_client.patch_capture_with(params, data, query))
+        self.runtime.block_on(self.inner_client.patch_capture_with(params, data, query, headers))
     }
 
     /// Make a DELETE request.
-    pub fn delete<U, T>(&self, params: U) -> Result<Response<()>, Error>
+    pub fn delete<U, T>(&self, params: U, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<()>, Error>
     where
         T: RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.delete::<U, T>(params))
+        self.runtime.block_on(self.inner_client.delete::<U, T>(params, headers))
     }
 
     /// Make a DELETE request with query and body.
-    pub fn delete_with<U, T>(&self, params: U, data: &T, query: &Query<'_>) -> Result<Response<()>, Error>
+    pub fn delete_with<U, T>(&self, params: U, data: &T, query: &Query<'_>, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.runtime.block_on(self.inner_client.delete_with(params, data, query))
+        self.runtime.block_on(self.inner_client.delete_with(params, data, query, headers))
     }
 
     /// Make a DELETE request and capture returned body.
-    pub fn delete_capture<U, T, K>(&self, params: U, data: &T) -> Result<Response<K>, Error>
+    pub fn delete_capture<U, T, K>(&self, params: U, data: &T, headers: Option<HeaderMap<HeaderValue>>,) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.runtime.block_on(self.inner_client.delete_capture(params, data))
+        self.runtime.block_on(self.inner_client.delete_capture(params, data, headers))
     }
 
     /// Make a DELETE request with query parameters and capture returned body.
@@ -225,12 +225,12 @@ impl RestClient {
         &self,
         params: U,
         data: &T,
-        query: &Query<'_>,
+        query: &Query<'_>, headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.runtime.block_on(self.inner_client.delete_capture_with(params, data, query))
+        self.runtime.block_on(self.inner_client.delete_capture_with(params, data, query, headers))
     }
 }

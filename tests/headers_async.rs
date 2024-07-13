@@ -32,7 +32,7 @@ async fn headers() {
         .set_header(USER_AGENT.as_str(), "restson-test")
         .unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(()).await.unwrap().into_inner();
+    let data = client.get::<_, HttpBinAnything>((), None).await.unwrap().into_inner();
     assert_eq!(data.headers.user_agent, "restson-test");
 }
 
@@ -42,12 +42,12 @@ async fn headers_clear() {
 
     client.set_header("X-Test", "12345").unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(()).await.unwrap().into_inner();
+    let data = client.get::<_, HttpBinAnything>((), None).await.unwrap().into_inner();
     assert_eq!(data.headers.test, "12345");
 
     client.clear_headers();
 
-    let data = client.get::<_, HttpBinAnything>(()).await.unwrap().into_inner();
+    let data = client.get::<_, HttpBinAnything>((), None).await.unwrap().into_inner();
     assert_eq!(data.headers.test, "");
 }
 
@@ -55,7 +55,7 @@ async fn headers_clear() {
 async fn default_user_agent() {
     let client = RestClient::new("http://httpbin.org").unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(()).await.unwrap().into_inner();
+    let data = client.get::<_, HttpBinAnything>((), None).await.unwrap().into_inner();
     assert_eq!(
         data.headers.user_agent,
         "restson/".to_owned() + env!("CARGO_PKG_VERSION")
@@ -66,6 +66,6 @@ async fn default_user_agent() {
 async fn response_headers() {
     let client = RestClient::new("http://httpbin.org").unwrap();
 
-    let data = client.get::<_, HttpBinAnything>(()).await.unwrap();
+    let data = client.get::<_, HttpBinAnything>((), None).await.unwrap();
     assert_eq!(data.headers()["content-type"], "application/json");
 }

@@ -59,7 +59,7 @@ fn invalid_baseurl() {
 fn invalid_get() {
     let client = RestClient::new_blocking("http://httpbin.org").unwrap();
 
-    if client.get::<(), InvalidResource>(()).is_ok() {
+    if client.get::<(), InvalidResource>((), None).is_ok() {
         panic!("expected error");
     }
 }
@@ -70,7 +70,7 @@ fn invalid_post() {
 
     let data = InvalidResource {};
 
-    if client.post((), &data).is_ok() {
+    if client.post((), &data, None).is_ok() {
         panic!("expected error");
     }
 }
@@ -79,7 +79,7 @@ fn invalid_post() {
 fn path_error() {
     let client = RestClient::new_blocking("http://httpbin.org").unwrap();
 
-    if let Err(Error::UrlError) = client.get::<bool, InvalidResource>(false) {
+    if let Err(Error::UrlError) = client.get::<bool, InvalidResource>(false, None) {
     } else {
         panic!("expected url error");
     }
@@ -89,7 +89,7 @@ fn path_error() {
 fn http_error() {
     let client = RestClient::new_blocking("http://httpbin.org").unwrap();
 
-    match client.get::<_, HttpBinStatus>(418) {
+    match client.get::<_, HttpBinStatus>(418, None) {
         Err(Error::HttpError(s, body)) => {
             assert_eq!(s, 418);
             assert!(!body.is_empty());
@@ -105,7 +105,7 @@ fn request_timeout() {
     client.set_timeout(Duration::from_secs(1));
 
     let start = Instant::now();
-    if let Err(Error::TimeoutError) = client.get::<u16, HttpBinDelay>(3) {
+    if let Err(Error::TimeoutError) = client.get::<u16, HttpBinDelay>(3, None) {
         assert!(start.elapsed().as_secs() == 1);
     } else {
         panic!("expected timeout error");
@@ -120,7 +120,7 @@ fn deserialize_error() {
     // Service returns decoded base64 in body which should be string 'test'.
     // This fails JSON deserialization and is returned in the Error
     if let Err(Error::DeserializeParseError(_, data)) =
-        client.get::<String, HttpBinBase64>("dGVzdA==".to_string())
+        client.get::<String, HttpBinBase64>("dGVzdA==".to_string(), None)
     {
         assert!(data == "test");
     } else {

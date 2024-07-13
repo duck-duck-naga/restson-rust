@@ -23,7 +23,7 @@ impl RestPath<()> for HttpBinDelete {
 fn basic_delete() {
     let client = RestClient::new_blocking("http://httpbin.org").unwrap();
 
-    client.delete::<(), HttpBinDelete>(()).unwrap();
+    client.delete::<(), HttpBinDelete>((), None).unwrap();
 }
 
 #[test]
@@ -34,9 +34,9 @@ fn delete_with() {
     let data = HttpBinDelete {
         data: String::from("test data"),
     };
-    client.delete_with((), &data, &params).unwrap();
+    client.delete_with((), &data, &params, None).unwrap();
 
-    client.delete_with((), &data, &vec![]).unwrap();
+    client.delete_with((), &data, &vec![], None).unwrap();
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn delete_capture() {
     let data = HttpBinDelete {
         data: String::from("test data"),
     };
-    let resp = client.delete_capture::<_, _, HttpBinDeleteResp>((), &data).unwrap();
+    let resp = client.delete_capture::<_, _, HttpBinDeleteResp>((), &data, None).unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/delete");
@@ -60,7 +60,7 @@ fn delete_capture_query_params() {
     let data = HttpBinDelete {
         data: String::from("test data"),
     };
-    let resp = client.delete_capture_with::<_, _, HttpBinDeleteResp>((), &data, &params).unwrap();
+    let resp = client.delete_capture_with::<_, _, HttpBinDeleteResp>((), &data, &params, None).unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/delete?a=2&b=abcd");

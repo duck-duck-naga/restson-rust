@@ -35,20 +35,20 @@
 //! }
 //! ```
 
-use tokio::time::timeout;
-use hyper::header::*;
 use hyper::body::Buf;
+use hyper::header::*;
 use hyper::{Client, Method, Request};
-use log::{debug, trace, error};
-use std::{error, fmt};
+use log::{debug, error, trace};
 use std::ops::Deref;
 use std::time::Duration;
+use std::{error, fmt};
+use tokio::time::timeout;
 use url::Url;
 
-#[cfg(feature = "native-tls")]
-use hyper_tls::HttpsConnector;
 #[cfg(feature = "rustls")]
 use hyper_rustls::{HttpsConnector, HttpsConnectorBuilder};
+#[cfg(feature = "native-tls")]
+use hyper_tls::HttpsConnector;
 
 #[cfg(feature = "blocking")]
 pub mod blocking;
@@ -314,14 +314,12 @@ impl RestClient {
     }
 
     #[cfg(feature = "native-tls")]
-    fn build_client() -> HyperClient
-    {
+    fn build_client() -> HyperClient {
         Client::builder().build(HttpsConnector::new())
     }
 
     #[cfg(feature = "rustls")]
-    fn build_client() -> HyperClient
-    {
+    fn build_client() -> HyperClient {
         let connector = HttpsConnectorBuilder::new()
             .with_native_roots()
             .https_or_http()
@@ -333,9 +331,7 @@ impl RestClient {
     fn with_builder(url: &str, builder: Builder) -> Result<RestClient, Error> {
         let client = match builder.client {
             Some(client) => client,
-            None => {
-                Self::build_client()
-            }
+            None => Self::build_client(),
         };
 
         let baseurl = Url::parse(url).map_err(|_| Error::UrlError)?;
@@ -397,84 +393,138 @@ impl RestClient {
     }
 
     /// Make a GET request.
-    pub async fn get<U, T>(&self, params: U) -> Result<Response<T>, Error>
+    pub async fn get<U, T>(
+        &self,
+        params: U,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<T>, Error>
     where
         T: serde::de::DeserializeOwned + RestPath<U>,
     {
-        let req = self.make_request::<U, T>(Method::GET, params, None, None)?;
+        let req = self.make_request::<U, T>(Method::GET, params, None, None, headers)?;
         let res = self.run_request(req).await?;
 
         res.parse()
     }
 
     /// Make a GET request with query parameters.
-    pub async fn get_with<U, T>(&self, params: U, query: &Query<'_>) -> Result<Response<T>, Error>
+    pub async fn get_with<U, T>(
+        &self,
+        params: U,
+        query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<T>, Error>
     where
         T: serde::de::DeserializeOwned + RestPath<U>,
     {
-        let req = self.make_request::<U, T>(Method::GET, params, Some(query), None)?;
+        let req = self.make_request::<U, T>(Method::GET, params, Some(query), None, headers)?;
         let res = self.run_request(req).await?;
 
         res.parse()
     }
 
     /// Make a POST request.
-    pub async fn post<U, T>(&self, params: U, data: &T) -> Result<Response<()>, Error>
+    pub async fn post<U, T>(
+        &self,
+        params: U,
+        data: &T,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.post_or_put(Method::POST, params, data).await
+        self.post_or_put(Method::POST, params, data, headers).await
     }
 
     /// Make a PUT request.
-    pub async fn put<U, T>(&self, params: U, data: &T) -> Result<Response<()>, Error>
+    pub async fn put<U, T>(
+        &self,
+        params: U,
+        data: &T,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.post_or_put(Method::PUT, params, data).await
+        self.post_or_put(Method::PUT, params, data, headers).await
     }
 
     /// Make a PATCH request.
-    pub async fn patch<U, T>(&self, params: U, data: &T) -> Result<Response<()>, Error>
+    pub async fn patch<U, T>(
+        &self,
+        params: U,
+        data: &T,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.post_or_put(Method::PATCH, params, data).await
+        self.post_or_put(Method::PATCH, params, data, headers).await
     }
 
-    async fn post_or_put<U, T>(&self, method: Method, params: U, data: &T) -> Result<Response<()>, Error>
+    async fn post_or_put<U, T>(
+        &self,
+        method: Method,
+        params: U,
+        data: &T,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
         let data = serde_json::to_string(data).map_err(Error::SerializeParseError)?;
 
-        let req = self.make_request::<U, T>(method, params, None, Some(data))?;
+        let req = self.make_request::<U, T>(method, params, None, Some(data), headers)?;
         let res = self.run_request(req).await?;
-        Ok(Response { body: (), headers: res.headers })
+        Ok(Response {
+            body: (),
+            headers: res.headers,
+        })
     }
 
     /// Make POST request with query parameters.
-    pub async fn post_with<U, T>(&self, params: U, data: &T, query: &Query<'_>) -> Result<Response<()>, Error>
+    pub async fn post_with<U, T>(
+        &self,
+        params: U,
+        data: &T,
+        query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.post_or_put_with(Method::POST, params, data, query).await
+        self.post_or_put_with(Method::POST, params, data, query, headers)
+            .await
     }
 
     /// Make PUT request with query parameters.
-    pub async fn put_with<U, T>(&self, params: U, data: &T, query: &Query<'_>) -> Result<Response<()>, Error>
+    pub async fn put_with<U, T>(
+        &self,
+        params: U,
+        data: &T,
+        query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.post_or_put_with(Method::PUT, params, data, query).await
+        self.post_or_put_with(Method::PUT, params, data, query, headers)
+            .await
     }
 
     /// Make PATCH request with query parameters.
-    pub async fn patch_with<U, T>(&self, params: U, data: &T, query: &Query<'_>) -> Result<Response<()>, Error>
+    pub async fn patch_with<U, T>(
+        &self,
+        params: U,
+        data: &T,
+        query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
-        self.post_or_put_with(Method::PATCH, params, data, query).await
+        self.post_or_put_with(Method::PATCH, params, data, query, headers)
+            .await
     }
 
     async fn post_or_put_with<U, T>(
@@ -483,51 +533,79 @@ impl RestClient {
         params: U,
         data: &T,
         query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
         let data = serde_json::to_string(data).map_err(Error::SerializeParseError)?;
 
-        let req = self.make_request::<U, T>(method, params, Some(query), Some(data))?;
+        let req = self.make_request::<U, T>(method, params, Some(query), Some(data), headers)?;
         let res = self.run_request(req).await?;
-        Ok(Response { body: (), headers: res.headers })
+        Ok(Response {
+            body: (),
+            headers: res.headers,
+        })
     }
 
     /// Make a POST request and capture returned body.
-    pub async fn post_capture<U, T, K>(&self, params: U, data: &T) -> Result<Response<K>, Error>
+    pub async fn post_capture<U, T, K>(
+        &self,
+        params: U,
+        data: &T,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.generic_capture(Method::POST, params, data).await
+        self.generic_capture(Method::POST, params, data, headers)
+            .await
     }
 
     /// Make a PUT request and capture returned body.
-    pub async fn put_capture<U, T, K>(&self, params: U, data: &T) -> Result<Response<K>, Error>
+    pub async fn put_capture<U, T, K>(
+        &self,
+        params: U,
+        data: &T,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.generic_capture(Method::PUT, params, data).await
+        self.generic_capture(Method::PUT, params, data, headers)
+            .await
     }
 
     /// Make a PATCH request and capture returned body.
-    pub async fn patch_capture<U, T, K>(&self, params: U, data: &T) -> Result<Response<K>, Error>
+    pub async fn patch_capture<U, T, K>(
+        &self,
+        params: U,
+        data: &T,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.generic_capture(Method::PATCH, params, data).await
+        self.generic_capture(Method::PATCH, params, data, headers)
+            .await
     }
 
     /// Make a DELETE request and capture returned body.
-    pub async fn delete_capture<U, T, K>(&self, params: U, data: &T) -> Result<Response<K>, Error>
+    pub async fn delete_capture<U, T, K>(
+        &self,
+        params: U,
+        data: &T,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.generic_capture(Method::DELETE, params, data).await
+        self.generic_capture(Method::DELETE, params, data, headers)
+            .await
     }
 
     async fn generic_capture<U, T, K>(
@@ -535,6 +613,7 @@ impl RestClient {
         method: Method,
         params: U,
         data: &T,
+        headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
@@ -542,7 +621,7 @@ impl RestClient {
     {
         let data = serde_json::to_string(data).map_err(Error::SerializeParseError)?;
 
-        let req = self.make_request::<U, T>(method, params, None, Some(data))?;
+        let req = self.make_request::<U, T>(method, params, None, Some(data), headers)?;
         let res = self.run_request(req).await?;
         res.parse()
     }
@@ -553,12 +632,14 @@ impl RestClient {
         params: U,
         data: &T,
         query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.generic_capture_with(Method::POST, params, data, query).await
+        self.generic_capture_with(Method::POST, params, data, query, headers)
+            .await
     }
 
     /// Make a PUT request with query parameters and capture returned body.
@@ -567,12 +648,14 @@ impl RestClient {
         params: U,
         data: &T,
         query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.generic_capture_with(Method::PUT, params, data, query).await
+        self.generic_capture_with(Method::PUT, params, data, query, headers)
+            .await
     }
 
     /// Make a PATCH request with query parameters and capture returned body.
@@ -581,12 +664,14 @@ impl RestClient {
         params: U,
         data: &T,
         query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.generic_capture_with(Method::PATCH, params, data, query).await
+        self.generic_capture_with(Method::PATCH, params, data, query, headers)
+            .await
     }
 
     /// Make a DELETE request with query parameters and capture returned body.
@@ -595,12 +680,14 @@ impl RestClient {
         params: U,
         data: &T,
         query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
         K: serde::de::DeserializeOwned,
     {
-        self.generic_capture_with(Method::DELETE, params, data, query).await
+        self.generic_capture_with(Method::DELETE, params, data, query, headers)
+            .await
     }
 
     async fn generic_capture_with<U, T, K>(
@@ -609,6 +696,7 @@ impl RestClient {
         params: U,
         data: &T,
         query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Response<K>, Error>
     where
         T: serde::Serialize + RestPath<U>,
@@ -616,33 +704,53 @@ impl RestClient {
     {
         let data = serde_json::to_string(data).map_err(Error::SerializeParseError)?;
 
-        let req = self.make_request::<U, T>(method, params, Some(query), Some(data))?;
+        let req = self.make_request::<U, T>(method, params, Some(query), Some(data), headers)?;
         let res = self.run_request(req).await?;
         res.parse()
     }
 
     /// Make a DELETE request.
-    pub async fn delete<U, T>(&self, params: U) -> Result<Response<()>, Error>
+    pub async fn delete<U, T>(
+        &self,
+        params: U,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<()>, Error>
     where
         T: RestPath<U>,
     {
-        let req = self.make_request::<U, T>(Method::DELETE, params, None, None)?;
+        let req = self.make_request::<U, T>(Method::DELETE, params, None, None, headers)?;
         let res = self.run_request(req).await?;
-        Ok(Response { body: (), headers: res.headers })
+        Ok(Response {
+            body: (),
+            headers: res.headers,
+        })
     }
 
     /// Make a DELETE request with query and body.
-    pub async fn delete_with<U, T>(&self, params: U, data: &T, query: &Query<'_>) -> Result<Response<()>, Error>
+    pub async fn delete_with<U, T>(
+        &self,
+        params: U,
+        data: &T,
+        query: &Query<'_>,
+        headers: Option<HeaderMap<HeaderValue>>,
+    ) -> Result<Response<()>, Error>
     where
         T: serde::Serialize + RestPath<U>,
     {
         let data = serde_json::to_string(data).map_err(Error::SerializeParseError)?;
-        let req = self.make_request::<U, T>(Method::DELETE, params, Some(query), Some(data))?;
+        let req =
+            self.make_request::<U, T>(Method::DELETE, params, Some(query), Some(data), headers)?;
         let res = self.run_request(req).await?;
-        Ok(Response { body: (), headers: res.headers })
+        Ok(Response {
+            body: (),
+            headers: res.headers,
+        })
     }
 
-    async fn run_request(&self, req: hyper::Request<hyper::Body>) -> Result<Response<String>, Error> {
+    async fn run_request(
+        &self,
+        req: hyper::Request<hyper::Body>,
+    ) -> Result<Response<String>, Error> {
         debug!("{} {}", req.method(), req.uri());
         trace!("{:?}", req);
 
@@ -675,7 +783,10 @@ impl RestClient {
 
         trace!("response headers: {:?}", response_headers);
         trace!("response body: {}", body);
-        Ok(Response { body: (self.body_wash_fn)(body), headers: response_headers })
+        Ok(Response {
+            body: (self.body_wash_fn)(body),
+            headers: response_headers,
+        })
     }
 
     fn make_request<U, T>(
@@ -684,6 +795,7 @@ impl RestClient {
         params: U,
         query: Option<&Query>,
         body: Option<String>,
+        headers: Option<HeaderMap<HeaderValue>>,
     ) -> Result<Request<hyper::Body>, Error>
     where
         T: RestPath<U>,
@@ -715,8 +827,14 @@ impl RestClient {
             );
         };
 
-        for (key, value) in self.headers.iter() {
-            req.headers_mut().insert(key, value.clone());
+        if let Some(headers) = headers {
+            for (key, value) in headers.iter() {
+                req.headers_mut().insert(key, value.clone());
+            }
+        } else {
+            for (key, value) in self.headers.iter() {
+                req.headers_mut().insert(key, value.clone());
+            }
         }
 
         if !req.headers().contains_key(USER_AGENT) {
@@ -731,7 +849,9 @@ impl RestClient {
     }
 
     fn make_uri(&self, path: &str, params: Option<&Query>) -> Result<hyper::Uri, Error> {
-        let mut url = self.baseurl.clone()
+        let mut url = self
+            .baseurl
+            .clone()
             .join(path)
             .map_err(|_| Error::UrlError)?;
 

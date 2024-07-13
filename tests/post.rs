@@ -25,7 +25,7 @@ fn basic_post() {
     let data = HttpBinPost {
         data: String::from("test data"),
     };
-    client.post((), &data).unwrap();
+    client.post((), &data, None).unwrap();
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn post_query_params() {
     let data = HttpBinPost {
         data: String::from("test data"),
     };
-    client.post_with((), &data, &params).unwrap();
+    client.post_with((), &data, &params, None).unwrap();
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn post_capture() {
     let data = HttpBinPost {
         data: String::from("test data"),
     };
-    let resp = client.post_capture::<_, _, HttpBinPostResp>((), &data).unwrap();
+    let resp = client.post_capture::<_, _, HttpBinPostResp>((), &data, None).unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/post");
@@ -60,7 +60,7 @@ fn post_capture_query_params() {
     let data = HttpBinPost {
         data: String::from("test data"),
     };
-    let resp = client.post_capture_with::<_, _, HttpBinPostResp>((), &data, &params).unwrap();
+    let resp = client.post_capture_with::<_, _, HttpBinPostResp>((), &data, &params, None).unwrap();
 
     assert_eq!(resp.json.data, "test data");
     assert_eq!(resp.url, "https://httpbin.org/post?a=2&b=abcd");
