@@ -36,7 +36,7 @@
 //! ```
 
 use hyper::body::Buf;
-use hyper::header::*;
+pub use hyper::header::*;
 use hyper::{Client, Method, Request};
 use log::{debug, error, trace};
 use std::ops::Deref;
